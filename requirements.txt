@@ -1,2 +1,3 @@
 torch
 paho-mqtt
+pygame

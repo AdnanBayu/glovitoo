@@ -1,5 +1,7 @@
 import torch
 import numpy as np
+
+from audio import AudioPlayer
 from models.RNNModel import SIBIRNNModel
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -45,6 +47,14 @@ def read_data(filepath):
         data = f.read().splitlines()
         return data
 
+def output_audio(predict:str, audio_folder:str = f"alphabet_audio/wav/"):
+    player = AudioPlayer()
+    
+    filename = f'{predict}.wav'
+    filepath = f'{audio_folder}{filename}'
+    
+    player.play_audio(filepath)
+    del(player)
 
 if __name__ == '__main__':
     data = read_data('./data/a/a-1.txt')

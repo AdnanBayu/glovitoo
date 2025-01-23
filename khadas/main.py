@@ -10,7 +10,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 time = datetime.now()
 
 model = SIBIRNNModel(20, 20, 3, 26).to(device)
-
+prediction = ''
+prev_prediction = ''
+counter = 0
+counter_limit = 10
 
 def loop_default(client, userdata, msg):
     data = msg.payload.decode()
@@ -28,8 +31,8 @@ def get_data(client, userdata, msg, letter='a', id=1):
         'data', letter, f'{letter}-{id}.txt'))
     print(data)
 
-
 def predict(client, userdata, msg, seq_len=20):
+    global counter, prediction, prev_prediction  # Declare these variables as global
     data = msg.payload.decode()
     data = convert_data_str_int(data, threshold=True)
     print(data)
@@ -44,7 +47,21 @@ def predict(client, userdata, msg, seq_len=20):
             data_from_txt, threshold=False, seq_len=seq_len, id=current_len_data-seq_len)
         print(data_torch.shape)
         out = model(data_torch)
-        print(chr(torch.argmax(out).item() + 97))
+        prediction = chr(torch.argmax(out).item() + 97)
+        print(prediction)
+    
+    if counter >= counter_limit:
+        output_audio(prediction)
+        counter = 0
+    else : 
+        if prediction == prev_prediction : 
+            counter += 1
+        else : 
+            prev_prediction = prediction
+            counter = 0
+            
+    print(f'Current Counter : {counter}/{counter_limit}')
+    
 
 if __name__ == '__main__':
     # Setup argument parsing

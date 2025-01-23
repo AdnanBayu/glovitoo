@@ -39,4 +39,7 @@ class AudioPlayer:
 # Example usage
 if __name__ == "__main__":
     player = AudioPlayer()
-    player.play_audio(".\\alphabet_audio\\a.mp3")
+    player.play_audio("alphabet_audio/wav/t.wav")
+    player.play_audio("alphabet_audio/wav/i.wav")
+    player.play_audio("alphabet_audio/wav/m.wav")
+    player.play_audio("alphabet_audio/wav/o.wav")
