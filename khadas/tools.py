@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 
@@ -5,12 +6,11 @@ from audio import AudioPlayer
 from models.RNNModel import SIBIRNNModel
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def convert_data_str_int(data, threshold=False):
+def convert_data_str_int(data, thresholds=None):
     data = data.split(',')
 
-    if threshold:
-        flex_data = [round(apply_threshold(float(x), 2700, 3600), 2)
-                     for x in data[:5]]
+    if thresholds is not None:
+        flex_data = [round(apply_threshold(float(data[i]), thresholds[2*i + 1], thresholds[2*i]), 2) for i in range(5)]
     else:
         flex_data = data[:5]
 
@@ -36,15 +36,14 @@ def save_data(data, filepath='test.txt'):
     with open(filepath, 'a') as f:
         f.write(data + '\n')
 
-def read_data(filepath='test.txt'):
-    with open(filepath, 'r') as f:
-        data = f.read().splitlines()
-    
-    return data
-
 def read_data(filepath):
     with open(filepath, 'r') as f:
         data = f.read().splitlines()
+        return data
+
+def read_config(config_path):
+    with open(os.path.join('config', f'{config_path}.txt'), 'r') as f:
+        data = [float(x.split(':')[1].split(',')[0].strip()) for x in f.read().splitlines()]
         return data
 
 def output_audio(predict:str, audio_folder:str = f"alphabet_audio/wav/"):
