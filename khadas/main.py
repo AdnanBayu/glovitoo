@@ -24,6 +24,7 @@ config_mode = 'min'
 
 def loop_default(client, userdata, msg, config_path:str="default"):
     data = msg.payload.decode()
+    #print(data)
     if config_path != "default" : 
         thresholds = read_config(config_path=config_path)
         data = convert_data_str_int(data, thresholds=thresholds)
@@ -32,7 +33,7 @@ def loop_default(client, userdata, msg, config_path:str="default"):
     print(data)
 
 def get_config(client, userdata, msg, config_path:str='default', time_sleep=5):
-    global config_finger_counter, config_time_counter, config_mode, start_time  
+    global config_finger_counter, config_mode, start_time  
     execution_time = time.time() - start_time
     print(f"Get the {'min' if config_mode != 'min' else 'max'} of {config_finger_counter + 1}'st finger on {time_sleep - execution_time} seconds")
     
@@ -56,15 +57,21 @@ def get_config(client, userdata, msg, config_path:str='default', time_sleep=5):
         
         start_time = time.time()
 
-def get_data(client, userdata, msg, letter:str='a', id=1):
+def get_data(client, userdata, msg, letter:str='a', name='default', id=1, time_get_data=3):
+    global config_mode, start_time  
+
+    execution_time = time.time() - start_time
     data = msg.payload.decode()
     data = convert_data_str_int(data)
 
-    os.makedirs(os.path.join('data', letter), exist_ok=True)
+    os.makedirs(os.path.join('data', name, letter), exist_ok=True)
 
     save_data(data, filepath=os.path.join(
-        'data', letter, f'{letter}-{id}.txt'))
-    print(data)
+        'data', name, letter, f'{letter}-{id}.txt'))
+    print(f'{execution_time} : {data}')
+
+    if execution_time >= time_get_data :
+        exit()
 
 def predict(client, userdata, msg, seq_len=20, config_path:str="default"):
     global counter, prediction, prev_prediction  # Declare these variables as global
@@ -111,7 +118,8 @@ if __name__ == '__main__':
                         help='ID used for the filename')
     parser.add_argument('--seq_len', type=int, default=20,
                         help='Sequence len gesture data for prediction')
-    parser.add_argument('--config_path', type=str, default='default', help='Name used for saving the configuration')
+    parser.add_argument('--config_path', type=str, default='default', help='Config path used for saving the configuration')
+    parser.add_argument('--name', type=str, default='default', help='Name used for saving the configuration')
 
     # Parse arguments
     args = parser.parse_args()
@@ -122,7 +130,7 @@ if __name__ == '__main__':
     if (args.fn == 'get_data'):
         print(f'Saving the data into data/{args.letter}-{args.id}.txt')
         subscribe(client, topic=TOPIC, loop=lambda client, userdata, message: get_data(
-            client, userdata, message, letter=args.letter, id=args.id))
+            client, userdata, message, letter=args.letter, name=args.name, id=args.id))
     
     elif (args.fn =='config'):
         print(f'Saving the configuration into/{args.config_path}.txt')
